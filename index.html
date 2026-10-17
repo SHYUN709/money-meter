@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>알바 머니 미터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF1FF; --surface:#FFFFFF; --surface2:#DFE6FF; --ink:#1B1748; --muted:#5D5A86; --line:#C9D1F2;
+  --gold:#F2B10A; --gold-deep:#B37F00; --pink:#F0407F; --mint:#17A88E; --violet:#5B3FD9;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#140F33; --surface:#211A4C; --surface2:#2C2462; --ink:#F2EFFF; --muted:#A9A3D6; --line:#3A3175;
+    --gold:#FFC93C; --gold-deep:#FFB000; --pink:#FF5C99; --mint:#3BDDBE; --violet:#9C85FF;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#140F33; --surface:#211A4C; --surface2:#2C2462; --ink:#F2EFFF; --muted:#A9A3D6; --line:#3A3175;
+  --gold:#FFC93C; --gold-deep:#FFB000; --pink:#FF5C99; --mint:#3BDDBE; --violet:#9C85FF;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.55}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.disp{font-family:"Black Han Sans","Noto Sans KR",sans-serif;font-weight:400}
+.wrap{max-width:720px;margin:0 auto;padding:20px 18px 64px}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:12px}
+.lv{display:flex;align-items:center;justify-content:center;width:54px;height:54px;flex:none;border-radius:14px;background:var(--violet);color:#fff;font-size:1.25rem;box-shadow:0 4px 0 color-mix(in srgb,var(--violet) 55%,#000)}
+.xp{flex:1;min-width:0}
+.xp-row{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);margin-bottom:5px}
+.xp-row b{color:var(--ink);font-weight:700}
+.bar{height:14px;border-radius:99px;background:var(--surface2);overflow:hidden;border:2px solid var(--line)}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--gold));border-radius:99px;transition:width .6s}
+.iconbtn{width:44px;height:44px;flex:none;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-size:1.2rem;line-height:1}
+
+/* hero */
+.hero{position:relative;margin:22px 0 18px;padding:28px 20px 30px;border-radius:22px;background:var(--surface);border:3px solid var(--ink);box-shadow:0 8px 0 var(--ink);text-align:center;overflow:hidden;user-select:none}
+.status{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;font-size:.92rem;font-weight:700;background:var(--surface2)}
+.status .dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.status.on{background:color-mix(in srgb,var(--mint) 20%,transparent);color:var(--ink)}
+.status.on .dot{background:var(--mint);animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.5);opacity:.5}}
+.hero-label{margin:18px 0 0;color:var(--muted);font-weight:500}
+.money{font-size:clamp(2.6rem,12vw,5.2rem);line-height:1.05;margin:6px 0 4px;color:var(--gold-deep);text-shadow:0 3px 0 color-mix(in srgb,var(--gold) 40%,transparent);font-variant-numeric:tabular-nums;cursor:pointer}
+.money small{font-size:.42em;color:var(--muted);text-shadow:none}
+.money .won{font-size:.5em;margin-left:.1em}
+.rate{color:var(--muted);font-size:.92rem}
+.rate b{color:var(--ink)}
+.shiftbar{margin:18px auto 0;max-width:420px}
+.shiftbar .bar{height:10px}
+.shiftbar .bar i{background:var(--pink)}
+.shiftbar .xp-row{margin:6px 0 0}
+.float{position:absolute;left:50%;top:45%;font-weight:700;color:var(--mint);pointer-events:none;animation:floatUp 1s ease-out forwards}
+@keyframes floatUp{from{transform:translate(-50%,0);opacity:1}to{transform:translate(-50%,-48px);opacity:0}}
+.coin{position:absolute;left:50%;top:48%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF3B0,var(--gold) 45%,var(--gold-deep));border:2px solid color-mix(in srgb,var(--gold-deep) 70%,#000);pointer-events:none;animation:burst var(--d,900ms) cubic-bezier(.2,.7,.4,1) forwards}
+.coin::after{content:"₩";position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:700;color:color-mix(in srgb,var(--gold-deep) 80%,#000)}
+@keyframes burst{
+  0%{transform:translate(0,0) scale(.4) rotate(0);opacity:1}
+  60%{opacity:1}
+  100%{transform:translate(var(--x),var(--y)) scale(1) rotate(var(--r));opacity:0}
+}
+@media (prefers-reduced-motion:reduce){.coin,.float{display:none}.status.on .dot{animation:none}}
+
+/* period tabs */
+.periods{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:22px}
+.periods button{padding:12px 6px;border-radius:14px;border:2px solid var(--line);background:var(--surface);text-align:center}
+.periods button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.periods span{display:block;font-size:.8rem;opacity:.8}
+.periods b{display:block;font-size:1.02rem;font-variant-numeric:tabular-nums;word-break:keep-all}
+@media (max-width:440px){.periods b{font-size:.9rem}}
+
+h2{font-family:"Black Han Sans","Noto Sans KR",sans-serif;font-weight:400;font-size:1.35rem;margin:28px 0 12px}
+h2 small{font-family:"Noto Sans KR",sans-serif;font-size:.85rem;color:var(--muted);margin-left:6px}
+.convert{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:600px){.convert{grid-template-columns:repeat(4,1fr)}}
+.item{padding:16px 12px;border-radius:16px;background:var(--surface);border:2px solid var(--line);text-align:center}
+.item .emo{font-size:2rem;line-height:1}
+.item .cnt{font-size:1.7rem;margin-top:6px;font-variant-numeric:tabular-nums}
+.item .nm{font-size:.85rem;color:var(--muted)}
+
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:440px){.badges{grid-template-columns:repeat(2,1fr)}}
+.badge{padding:14px 8px;border-radius:16px;border:2px dashed var(--line);text-align:center;color:var(--muted)}
+.badge .emo{font-size:1.9rem;filter:grayscale(1);opacity:.35}
+.badge .bn{font-weight:700;font-size:.9rem;margin-top:4px}
+.badge .ba{font-size:.78rem}
+.badge.got{border:2px solid var(--gold);background:color-mix(in srgb,var(--gold) 14%,var(--surface));color:var(--ink)}
+.badge.got .emo{filter:none;opacity:1}
+
+.empty{padding:22px;border-radius:18px;border:2px dashed var(--line);text-align:center;color:var(--muted)}
+.btn{padding:12px 20px;border-radius:12px;border:2px solid var(--ink);background:var(--gold);color:#1B1748;font-weight:700;box-shadow:0 4px 0 var(--ink)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn.sub{background:var(--surface);color:var(--ink)}
+
+/* settings */
+dialog{width:min(560px,calc(100% - 24px));max-height:calc(100% - 40px);padding:0;border:3px solid var(--ink);border-radius:20px;background:var(--surface);color:var(--ink)}
+dialog::backdrop{background:rgba(10,6,40,.55)}
+.dlg{padding:22px 20px}
+.dlg h3{font-family:"Black Han Sans","Noto Sans KR",sans-serif;font-weight:400;font-size:1.5rem;margin:0 0 16px}
+.field{display:grid;gap:6px;margin-bottom:16px}
+.field label{font-weight:700;font-size:.92rem}
+.field .help{color:var(--muted);font-size:.82rem}
+.inp{padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--bg);min-width:0}
+.days{display:grid;gap:8px}
+.day{display:grid;grid-template-columns:62px 1fr auto 1fr;gap:8px;align-items:center}
+.day label{display:flex;align-items:center;gap:6px;font-weight:700}
+.day input[type=checkbox]{width:20px;height:20px;accent-color:var(--violet)}
+.day .inp{padding:8px}
+.day.off .inp{opacity:.4}
+.dlg-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);padding:14px 20px;border-radius:16px;background:var(--ink);color:var(--bg);font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:transform .35s cubic-bezier(.2,1.4,.4,1);z-index:20;max-width:calc(100% - 32px);text-align:center}
+.toast.show{transform:translate(-50%,0)}
+.foot{margin-top:28px;color:var(--muted);font-size:.8rem;text-align:center}
+/* v2 additions */
+dialog{overflow:auto}
+.sect{margin:20px 0 8px;font-weight:700;font-size:1rem}
+.wday{padding:10px 0;border-bottom:1px dashed var(--line)}
+.wd-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.wd-head b{font-size:1rem}
+.brow{display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;align-items:center;margin-top:6px}
+.brow .inp{padding:8px}
+.mini{padding:6px 10px;border-radius:8px;border:2px solid var(--line);background:var(--surface);font-size:.85rem;white-space:nowrap}
+.mini.del{color:var(--pink)}
+.offtxt{color:var(--muted);font-size:.88rem}
+.exadd{display:grid;gap:8px;padding:12px;border-radius:12px;background:var(--surface2);margin-bottom:10px}
+.exadd .r{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.exadd .r .inp{flex:1;min-width:120px}
+.exlist{list-style:none;margin:0;padding:0;max-height:260px;overflow:auto;border:2px solid var(--line);border-radius:12px}
+.exlist li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:.9rem}
+.exlist li:last-child{border-bottom:none}
+.exlist .d{font-weight:700;font-variant-numeric:tabular-nums}
+.exlist .t{color:var(--muted);flex:1}
+.months{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.months li{display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:center;padding:14px 16px;border-radius:16px;background:var(--surface);border:2px solid var(--line)}
+.months .mn{font-size:1.4rem}
+.months .mh{color:var(--muted);font-size:.9rem}
+.months .mw{font-size:1.15rem;text-align:right;font-variant-numeric:tabular-nums}
+.months .proj{grid-column:1/-1;font-size:.85rem;color:var(--muted)}
+.months li.cur{border-color:var(--violet)}
+/* piggy bank */
+.piggy{display:grid;grid-template-columns:minmax(0,1.1fr) 1fr;gap:20px;align-items:center;padding:20px;border-radius:22px;background:var(--surface);border:3px solid var(--ink);box-shadow:0 6px 0 var(--ink)}
+@media (max-width:560px){.piggy{grid-template-columns:1fr}}
+.pigwrap{position:relative;cursor:pointer;user-select:none}
+.pigwrap svg{width:100%;height:auto;display:block;overflow:visible}
+.pig-body{fill:color-mix(in srgb,var(--pink) 14%,var(--surface))}
+.pig-line{fill:none;stroke:var(--ink);stroke-width:4;stroke-linejoin:round;stroke-linecap:round}
+.pig-part{fill:color-mix(in srgb,var(--pink) 38%,var(--surface));stroke:var(--ink);stroke-width:4;stroke-linejoin:round}
+.pig-fill{transition:transform 1.2s cubic-bezier(.3,1.3,.5,1)}
+.wave{fill:var(--gold);animation:wave 3s linear infinite}
+.wave2{fill:var(--gold-deep);opacity:.4;animation:wave 4.5s linear infinite reverse}
+@keyframes wave{to{transform:translateX(-60px)}}
+.dropcoin{position:absolute;left:48.75%;top:21%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF3B0,var(--gold) 45%,var(--gold-deep));border:2px solid color-mix(in srgb,var(--gold-deep) 70%,#000);pointer-events:none;animation:drop .75s ease-in forwards}
+@keyframes drop{0%{transform:translateY(-80px);opacity:0}20%{opacity:1}85%{transform:translateY(0);opacity:1}100%{transform:translateY(8px) scaleX(.2);opacity:0}}
+.pct{font-size:clamp(3rem,11vw,4.4rem);line-height:1;color:var(--violet);font-variant-numeric:tabular-nums}
+.pct span{font-size:.5em;margin-left:.05em}
+.pctlabel{color:var(--muted);font-size:.88rem;margin-bottom:4px}
+.capbar{height:12px;margin-top:12px}
+.capbar i{background:linear-gradient(90deg,var(--violet),var(--pink))}
+.pigstats dl{margin:14px 0 0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:.92rem}
+.pigstats dt{color:var(--muted)}
+.pigstats dd{margin:0;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.eta{margin:12px 0 0;font-size:.86rem;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.wave,.wave2{animation:none}.dropcoin{display:none}}
+/* payday */
+.payday{display:grid;grid-template-columns:auto 1fr;gap:6px 22px;align-items:center;margin:0 0 6px;padding:18px 22px;border-radius:20px;background:linear-gradient(120deg,var(--violet),var(--pink));color:#fff;border:3px solid var(--ink);box-shadow:0 6px 0 var(--ink)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .payday{color:#140F33}}
+:root[data-theme="dark"] .payday{color:#140F33}
+.pd-label{font-size:.85rem;font-weight:700;opacity:.9}
+.pd-dday{font-size:clamp(2.4rem,10vw,3.4rem);line-height:1}
+.pd-date{font-weight:700}
+.pd-amt{font-size:1.5rem;line-height:1.2;font-variant-numeric:tabular-nums}
+.pd-sub,.pd-count{font-size:.85rem;opacity:.9;font-variant-numeric:tabular-nums}
+@media (max-width:420px){.payday{grid-template-columns:1fr}}
+.welcome{margin:22px 0;padding:28px 22px;border-radius:22px;border:3px dashed var(--ink);background:var(--surface);text-align:center}
+.welcome h2{margin:0 0 8px;font-size:1.6rem}
+.welcome p{margin:0 0 18px;color:var(--muted)}
+.modepick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modepick label{display:flex;gap:8px;align-items:flex-start;padding:12px;border-radius:12px;border:2px solid var(--line);cursor:pointer;font-size:.9rem}
+.modepick label:has(input:checked){border-color:var(--violet);background:color-mix(in srgb,var(--violet) 10%,var(--surface))}
+.modepick input{accent-color:var(--violet);margin-top:3px}
+.modepick b{display:block}
+.modepick span{color:var(--muted);font-size:.82rem}
+.danger{margin-top:24px;padding-top:16px;border-top:2px dashed var(--line)}
+.mini.warn{color:var(--pink);border-color:var(--pink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="lv disp" id="lvBox">1</div>
+    <div class="xp">
+      <div class="xp-row"><span><b id="lvName">LV.1 신입 알바</b></span><span id="xpText">0 / 30,000</span></div>
+      <div class="bar"><i id="xpBar"></i></div>
+    </div>
+    <button class="iconbtn" id="soundBtn" aria-label="효과음 켜기">🔇</button>
+    <button class="iconbtn" id="setBtn" aria-label="설정">⚙️</button>
+  </div>
+
+  <section class="welcome" id="welcome" hidden>
+    <h2 class="disp">알바 머니 미터 💰</h2>
+    <p>시급이랑 근무 시간을 넣으면, 일하는 동안 번 돈이 1초마다 올라가요.<br>목표 금액을 정하면 저금통이 차오르고, 월급날 디데이도 알려줘요.</p>
+    <button class="btn" id="startBtn">시작하기</button>
+  </section>
+
+  <div id="main">
+  <section class="hero" id="hero">
+    <span class="status" id="status"><span class="dot"></span><span id="statusText">불러오는 중</span></span>
+    <p class="hero-label" id="heroLabel">이번 달 번 돈</p>
+    <div class="money disp" id="money" title="눌러서 동전 터뜨리기">0<small>.00</small><span class="won">원</span></div>
+    <div class="rate">시급 <b id="wageText">10,320원</b> · 초당 <b id="perSec">2.87원</b></div>
+    <div class="shiftbar" id="shiftWrap" hidden>
+      <div class="bar"><i id="shiftBar"></i></div>
+      <div class="xp-row"><span id="shiftLeft"></span><span id="shiftEnd"></span></div>
+    </div>
+  </section>
+
+  <section class="payday" aria-label="월급날">
+    <div><div class="pd-label">💸 다음 월급날</div><div class="pd-dday disp" id="pdDday">D-0</div></div>
+    <div>
+      <div class="pd-date" id="pdDate"></div>
+      <div class="pd-amt disp" id="pdAmt"></div>
+      <div class="pd-sub" id="pdSub"></div>
+      <div class="pd-count" id="pdCount"></div>
+    </div>
+  </section>
+
+  <h2 id="pigTitle">저금통</h2>
+  <section class="piggy">
+    <div class="pigwrap" id="pigwrap" title="눌러서 동전 넣기">
+      <svg viewBox="0 0 240 190" aria-hidden="true">
+        <defs><clipPath id="pigClip"><ellipse cx="115" cy="100" rx="88" ry="62"/></clipPath></defs>
+        <rect class="pig-part" x="55" y="138" width="24" height="38" rx="7"/>
+        <rect class="pig-part" x="148" y="138" width="24" height="38" rx="7"/>
+        <path class="pig-part" d="M126 46 l10 -26 l16 28 z"/>
+        <path class="pig-line" d="M28 94 q-16 -2 -14 -16 q2 -11 11 -6 q7 5 -3 11"/>
+        <ellipse class="pig-body" cx="115" cy="100" rx="88" ry="62"/>
+        <g clip-path="url(#pigClip)">
+          <g id="pigFill" class="pig-fill" style="transform:translateY(162px)">
+            <g transform="translate(0,-5)"><path class="wave2" d="M-60 0 Q-45 -7 -30 0 T0 0 T30 0 T60 0 T90 0 T120 0 T150 0 T180 0 T210 0 T240 0 T270 0 T300 0 T330 0 V220 H-60 Z"/></g>
+            <path class="wave" d="M-60 0 Q-45 -7 -30 0 T0 0 T30 0 T60 0 T90 0 T120 0 T150 0 T180 0 T210 0 T240 0 T270 0 T300 0 T330 0 V220 H-60 Z"/>
+          </g>
+        </g>
+        <ellipse class="pig-line" cx="115" cy="100" rx="88" ry="62"/>
+        <path d="M58 72 q20 -22 52 -27" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".55"/>
+        <path class="pig-part" d="M152 50 l16 -28 l12 32 z"/>
+        <ellipse class="pig-part" cx="203" cy="104" rx="16" ry="21"/>
+        <ellipse cx="200" cy="97" rx="2.6" ry="4.5" fill="var(--ink)"/>
+        <ellipse cx="200" cy="111" rx="2.6" ry="4.5" fill="var(--ink)"/>
+        <circle cx="172" cy="80" r="5" fill="var(--ink)"/>
+        <rect x="95" y="36" width="44" height="8" rx="4" fill="var(--ink)"/>
+      </svg>
+    </div>
+    <div class="pigstats">
+      <div class="pctlabel" id="pctLabel">목표 달성률</div>
+      <div class="pct disp" id="pct">0.0<span>%</span></div>
+      <div class="bar capbar"><i id="capBar"></i></div>
+      <dl>
+        <dt id="r1k"></dt><dd id="r1v"></dd>
+        <dt id="r2k"></dt><dd id="r2v"></dd>
+        <dt id="r3k"></dt><dd id="r3v"></dd>
+      </dl>
+      <p class="eta" id="eta"></p>
+    </div>
+  </section>
+
+  <div class="periods" id="periods" style="margin-top:22px">
+    <button data-p="today" aria-pressed="false"><span>오늘</span><b id="pToday">0원</b></button>
+    <button data-p="week" aria-pressed="false"><span>이번 주</span><b id="pWeek">0원</b></button>
+    <button data-p="month" aria-pressed="true"><span>이번 달</span><b id="pMonth">0원</b></button>
+    <button data-p="all" aria-pressed="false"><span>전체</span><b id="pAll">0원</b></button>
+  </div>
+
+  <h2>월별 정산</h2>
+  <ul class="months" id="months"></ul>
+
+  <h2>이걸로 살 수 있는 것 <small id="convLabel">이번 달 기준</small></h2>
+  <div class="convert" id="convert"></div>
+
+  <h2>업적 <small id="badgeCount">0 / 8</small></h2>
+  <div class="badges" id="badges"></div>
+  </div>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<dialog id="dlg">
+  <form class="dlg" method="dialog" id="setForm">
+    <h3 id="dlgTitle">설정</h3>
+    <div class="field">
+      <label for="wageIn">시급 (원)</label>
+      <input class="inp" id="wageIn" type="number" min="0" step="10" inputmode="numeric">
+      <span class="help">2026년 최저시급은 10,320원이에요.</span>
+    </div>
+    <div class="field">
+      <label for="startIn">알바 시작일</label>
+      <input class="inp" id="startIn" type="date">
+      <span class="help">이 날부터 번 돈을 계산해요.</span>
+    </div>
+    <div class="field">
+      <label for="paydayIn">월급날 (매달 며칠)</label>
+      <input class="inp" id="paydayIn" type="number" min="1" max="28" inputmode="numeric">
+      <span class="help">지난달 근무분이 이날 들어온다고 보고 계산해요.</span>
+    </div>
+
+    <div class="sect">저금통 기준</div>
+    <div class="modepick">
+      <label><input type="radio" name="mode" value="goal"><div><b>목표 금액</b><span>여행비, 아이패드처럼 모으고 싶은 금액</span></div></label>
+      <label><input type="radio" name="mode" value="hours"><div><b>한도 시간</b><span>근로장학생처럼 일할 수 있는 시간이 정해진 경우</span></div></label>
+    </div>
+    <div id="goalFields" style="margin-top:12px">
+      <div class="field"><label for="goalNameIn">목표 이름</label><input class="inp" id="goalNameIn" maxlength="30" placeholder="예: 제주도 여행"></div>
+      <div class="field"><label for="goalAmtIn">목표 금액 (원)</label><input class="inp" id="goalAmtIn" type="number" min="1000" step="1000" inputmode="numeric" placeholder="예: 500000"></div>
+    </div>
+    <div id="hourFields" style="margin-top:12px" hidden>
+      <div class="field"><label for="capIn">한도 시간 (시간)</label><input class="inp" id="capIn" type="number" min="1" step="1" inputmode="numeric"><span class="help">한도를 채우면 그 뒤로는 돈이 쌓이지 않아요.</span></div>
+      <div class="field"><label for="semEndIn">근무 종료일 (선택)</label><input class="inp" id="semEndIn" type="date"></div>
+    </div>
+
+    <div class="sect">요일별 근무 시간</div>
+    <span class="help" style="color:var(--muted);font-size:.82rem">날짜별 기록이 없는 날은 이 시간표대로 일한다고 계산해요.</span>
+    <div id="weekly"></div>
+
+    <div class="sect">날짜별 기록 · 예외</div>
+    <span class="help" style="color:var(--muted);font-size:.82rem">쉬었거나 시간이 바뀐 날을 적어두세요.</span>
+    <div class="exadd" style="margin-top:8px">
+      <div class="r">
+        <input class="inp" id="exDate" type="date" aria-label="날짜">
+        <select class="inp" id="exType" aria-label="종류">
+          <option value="off">휴무 (안 나감)</option>
+          <option value="blocks">시간대 바꿈</option>
+          <option value="rec">근무 시간만 입력</option>
+        </select>
+      </div>
+      <div class="r" id="exBlocksIn" hidden>
+        <input class="inp" id="exS" type="time" value="15:00" aria-label="출근"> ~
+        <input class="inp" id="exE" type="time" value="18:00" aria-label="퇴근">
+      </div>
+      <div class="r" id="exRecIn" hidden>
+        <input class="inp" id="exH" type="number" min="0" max="24" value="1" aria-label="시간"> 시간
+        <input class="inp" id="exM" type="number" min="0" max="59" value="0" aria-label="분"> 분
+      </div>
+      <div class="r"><button type="button" class="btn sub" id="exAdd">추가하기</button></div>
+    </div>
+    <ul class="exlist" id="exList"></ul>
+
+    <div class="danger">
+      <button type="button" class="mini warn" id="resetBtn">모든 기록 지우고 처음부터</button>
+    </div>
+
+    <div class="dlg-actions">
+      <button class="btn sub" value="cancel" type="submit">취소</button>
+      <button class="btn" value="save" type="submit">저장하기</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const DAYNAMES = ["일","월","화","수","목","금","토"];
+const ORDER = [1,2,3,4,5,6,0];
+const ITEMS = [
+  {emo:"🍗", nm:"치킨", unit:"마리", price:20000},
+  {emo:"☕", nm:"아메리카노", unit:"잔", price:4500},
+  {emo:"🍲", nm:"국밥", unit:"그릇", price:10000},
+  {emo:"🍙", nm:"삼각김밥", unit:"개", price:1500}
+];
+const BADGES = [
+  {amt:10000, emo:"🪙", nm:"첫 만 원"},
+  {amt:50000, emo:"💵", nm:"오만 원 획득"},
+  {amt:100000, emo:"🎖️", nm:"십만 원 클럽"},
+  {amt:300000, emo:"🏠", nm:"월세 한 조각"},
+  {amt:500000, emo:"💎", nm:"오십만 돌파"},
+  {amt:1000000, emo:"🏆", nm:"백만 원 달성"},
+  {amt:3000000, emo:"🚀", nm:"삼백 고지"},
+  {amt:10000000, emo:"👑", nm:"천만 원 전설"}
+];
+const TITLES = ["신입 알바","눈치 9단","프로 알바러","에이스","매니저급","점장 후보","알바의 신"];
+const KEY = "money-meter-v1";
+
+const pad = n => String(n).padStart(2,"0");
+const isoDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const won = n => Math.floor(n).toLocaleString("ko-KR") + "원";
+const hm = ms => { const t = Math.round(ms/60000); return `${Math.floor(t/60)}시간${t%60 ? " "+(t%60)+"분" : ""}`; };
+const clone = o => JSON.parse(JSON.stringify(o));
+
+function defaults(){
+  return {
+    setup:false, wage:10320, start: isoDate(new Date()), sound:false, payday:10,
+    mode:"goal", goalName:"", goalAmt:500000, cap:400, semEnd:"",
+    weekly:{0:[],1:[],2:[],3:[],4:[],5:[],6:[]},
+    exceptions:{}
+  };
+}
+let S = defaults();
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(defaults(), JSON.parse(raw)); } catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+const $ = id => document.getElementById(id);
+
+// ---------- time math ----------
+const dayAt = (y,m,d) => new Date(y,m,d);
+function toMs(day, hhmm){ const [h,m] = hhmm.split(":").map(Number); return +new Date(day.getFullYear(), day.getMonth(), day.getDate(), h, m); }
+function startMs(){ const [y,m,d] = S.start.split("-").map(Number); return +new Date(y,m-1,d); }
+function intervals(day){
+  const ex = S.exceptions[isoDate(day)];
+  let list = S.weekly[day.getDay()] || [];
+  if (ex){
+    if (ex.type === "off") return [];
+    if (ex.type === "rec"){
+      const w = S.weekly[day.getDay()];
+      const s = toMs(day, (w && w[0]) ? w[0].s : "09:00");
+      return [{s, e: s + ex.min*60000}];
+    }
+    if (ex.type === "blocks") list = ex.blocks;
+  }
+  return list.map(b => { const s = toMs(day,b.s); let e = toMs(day,b.e); if (e <= s) e += 86400000; return {s,e}; });
+}
+// time at which `hours` of work since start will have been reached
+const reachCache = {};
+function reachTime(hours){
+  const k = hours.toFixed(4);
+  if (k in reachCache) return reachCache[k];
+  const st = startMs(), s = new Date(st);
+  let left = hours * 3600000;
+  if (left <= 0) return reachCache[k] = st;
+  for (let i=0;i<1100;i++){
+    const ivs = intervals(dayAt(s.getFullYear(), s.getMonth(), s.getDate()+i)).sort((a,b)=>a.s-b.s);
+    for (const iv of ivs){
+      const a = Math.max(iv.s, st), len = iv.e - a;
+      if (len <= 0) continue;
+      if (len >= left) return reachCache[k] = a + left;
+      left -= len;
+    }
+  }
+  return reachCache[k] = Infinity;
+}
+const limitTime = () => S.mode === "hours" ? reachTime(S.cap) : Infinity;
+const semEndMs = () => { if (!S.semEnd) return Infinity; const [y,m,d] = S.semEnd.split("-").map(Number); return +new Date(y,m-1,d+1); };
+function workedMs(A, B){
+  A = Math.max(A, startMs());
+  B = Math.min(B, limitTime());
+  if (B <= A) return 0;
+  let ms = 0;
+  const a = new Date(A);
+  for (let d = dayAt(a.getFullYear(), a.getMonth(), a.getDate()-1); +d <= B; d = dayAt(d.getFullYear(), d.getMonth(), d.getDate()+1)){
+    for (const iv of intervals(d)) ms += Math.max(0, Math.min(iv.e, B) - Math.max(iv.s, A));
+  }
+  return ms;
+}
+const money = ms => ms / 3600000 * S.wage;
+const md = ms => { const t = new Date(ms); return `${t.getMonth()+1}/${t.getDate()}(${DAYNAMES[t.getDay()]})`; };
+function currentShift(now){
+  if (now >= limitTime()) return null;
+  const t = new Date(now);
+  for (const off of [-1,0]) for (const iv of intervals(dayAt(t.getFullYear(), t.getMonth(), t.getDate()+off)))
+    if (iv.s <= now && now < iv.e && iv.s >= startMs()) return iv;
+  return null;
+}
+function nextShift(now){
+  const t = new Date(now);
+  for (let i=0;i<15;i++){
+    const ivs = intervals(dayAt(t.getFullYear(), t.getMonth(), t.getDate()+i)).filter(iv => iv.s > now && iv.s >= startMs() && iv.s < limitTime()).sort((x,y)=>x.s-y.s);
+    if (ivs.length) return ivs[0];
+  }
+  return null;
+}
+const cum = L => 15000 * L * (L-1);
+function levelOf(total){ let L = 1; while (total >= cum(L+1)) L++; return {L, cur: total - cum(L), need: cum(L+1) - cum(L)}; }
+const hasSchedule = () => Object.values(S.weekly).some(d => d.length) || Object.keys(S.exceptions).length > 0;
+
+// ---------- sound ----------
+let ac = null;
+function tone(freq, t0, dur, type="square", vol=.06){
+  if (!S.sound || !ac) return;
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, ac.currentTime + t0);
+  g.gain.exponentialRampToValueAtTime(.0001, ac.currentTime + t0 + dur);
+  o.connect(g).connect(ac.destination);
+  o.start(ac.currentTime + t0); o.stop(ac.currentTime + t0 + dur + .02);
+}
+const sfx = {
+  coin(){ tone(988,0,.08); tone(1319,.08,.25); },
+  tick(){ tone(1760,0,.04,"sine",.025); },
+  level(){ [523,659,784,1047].forEach((f,i)=>tone(f,i*.1,.22)); tone(1319,.45,.5,"triangle",.07); },
+  badge(){ [784,988,1175,1568].forEach((f,i)=>tone(f,i*.08,.3,"triangle",.06)); }
+};
+function setSoundUI(){ $("soundBtn").textContent = S.sound ? "🔊" : "🔇"; $("soundBtn").setAttribute("aria-label", S.sound ? "효과음 끄기" : "효과음 켜기"); }
+$("soundBtn").onclick = () => {
+  S.sound = !S.sound; save(); setSoundUI();
+  if (S.sound){ try{ ac = ac || new (window.AudioContext||window.webkitAudioContext)(); ac.resume(); sfx.coin(); }catch(e){} }
+};
+
+// ---------- effects ----------
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function burst(n){
+  if (reduced) return;
+  const hero = $("hero");
+  for (let i=0;i<n;i++){
+    const c = document.createElement("span"); c.className = "coin";
+    const ang = Math.random()*Math.PI*2, dist = 70 + Math.random()*120;
+    c.style.setProperty("--x", Math.cos(ang)*dist + "px");
+    c.style.setProperty("--y", Math.sin(ang)*dist*0.7 - 30 + "px");
+    c.style.setProperty("--r", (Math.random()*720-360) + "deg");
+    c.style.setProperty("--d", 700 + Math.random()*500 + "ms");
+    hero.appendChild(c);
+    c.addEventListener("animationend", ()=>c.remove());
+  }
+}
+function floatText(txt){
+  if (reduced) return;
+  const f = document.createElement("span"); f.className = "float"; f.textContent = txt;
+  $("hero").appendChild(f); f.addEventListener("animationend", ()=>f.remove());
+}
+function dropCoin(){
+  if (reduced) return;
+  const c = document.createElement("span"); c.className = "dropcoin";
+  $("pigwrap").appendChild(c); c.addEventListener("animationend", ()=>c.remove());
+}
+let toastQ = [], toastBusy = false;
+function toast(msg){
+  toastQ.push(msg); if (toastBusy) return;
+  const next = () => {
+    const m = toastQ.shift(); if (!m){ toastBusy = false; return; }
+    toastBusy = true; const t = $("toast"); t.textContent = m; t.classList.add("show");
+    setTimeout(()=>{ t.classList.remove("show"); setTimeout(next, 400); }, 2600);
+  };
+  next();
+}
+$("money").onclick = () => { burst(14); sfx.coin(); };
+$("pigwrap").onclick = () => { dropCoin(); setTimeout(()=>sfx.coin(), 600); };
+
+// ---------- render ----------
+const PLABEL = {today:"오늘",week:"이번 주",month:"이번 달",all:"전체"};
+let period = currentShift(Date.now()) ? "today" : "month";
+let prevToday = null, prevLevel = null, prevBadges = null, prevGoal = null, lastMonthRender = 0;
+
+function buildStatic(){
+  $("convert").innerHTML = ITEMS.map((it,i)=>`<div class="item"><div class="emo">${it.emo}</div><div class="cnt disp" id="cv${i}">0</div><div class="nm">${it.nm} (${it.price.toLocaleString("ko-KR")}원)</div></div>`).join("");
+  $("badges").innerHTML = BADGES.map((b,i)=>`<div class="badge" id="bg${i}"><div class="emo">${b.emo}</div><div class="bn">${b.nm}</div><div class="ba">${won(b.amt)}</div></div>`).join("");
+  [...$("periods").children].forEach(x=>x.setAttribute("aria-pressed", x.dataset.p===period ? "true" : "false"));
+}
+
+function renderMonths(now){
+  const s = new Date(startMs()), n = new Date(now), out = [];
+  for (let m = dayAt(s.getFullYear(), s.getMonth(), 1); +m <= now; m = dayAt(m.getFullYear(), m.getMonth()+1, 1)){
+    const end = +dayAt(m.getFullYear(), m.getMonth()+1, 1);
+    const isCur = m.getFullYear()===n.getFullYear() && m.getMonth()===n.getMonth();
+    const done = workedMs(+m, Math.min(end, now));
+    let proj = "";
+    if (isCur){ const full = workedMs(+m, end); proj = `<span class="proj">월말까지 시간표대로 하면 ${hm(full)} · ${won(money(full))} 예상</span>`; }
+    out.push(`<li class="${isCur?"cur":""}"><span class="mn disp">${m.getMonth()+1}월</span><span class="mh">${isCur?"지금까지 ":""}${hm(done)}</span><span class="mw disp">${won(money(done))}</span>${proj}</li>`);
+  }
+  $("months").innerHTML = out.reverse().join("");
+}
+
+function renderPig(now, total){
+  const doneMs = workedMs(startMs(), now);
+  let r, eta;
+  if (S.mode === "hours"){
+    const capMs = S.cap * 3600000;
+    r = Math.min(1, doneMs / capMs);
+    $("pigTitle").innerHTML = `저금통 <small>${S.cap}시간 한도</small>`;
+    $("pctLabel").textContent = "한도 시간 달성률";
+    $("r1k").textContent = "일한 시간"; $("r1v").textContent = `${hm(doneMs)} / ${S.cap}시간`;
+    $("r2k").textContent = "모인 돈"; $("r2v").textContent = `${won(total)} / ${won(S.cap*S.wage)}`;
+    const left = Math.max(0, capMs - doneMs);
+    $("r3k").textContent = "남은 시간"; $("r3v").textContent = left ? `${hm(left)} · ${won(money(left))}` : "없음";
+    const ct = reachTime(S.cap), se = semEndMs();
+    if (r >= 1) eta = `🎉 ${S.cap}시간을 모두 채웠어요!`;
+    else if (ct === Infinity) eta = "시간표를 등록하면 언제 다 채우는지 알려줘요.";
+    else if (ct <= se) eta = `지금 시간표대로면 ${md(ct)}에 ${S.cap}시간을 다 채워요.`;
+    else { const atEnd = workedMs(startMs(), se); eta = `지금 시간표대로면 근무 종료일(${md(se-1)})까지 ${hm(atEnd)}, ${(Math.floor(atEnd/capMs*1000)/10).toFixed(1)}%까지 채워요.`; }
+  } else {
+    const goal = Math.max(1, S.goalAmt);
+    r = Math.min(1, total / goal);
+    const name = S.goalName || "목표";
+    $("pigTitle").innerHTML = `저금통 <small></small>`; $("pigTitle").querySelector("small").textContent = `${name} · ${won(goal)}`;
+    $("pctLabel").textContent = `${name} 달성률`;
+    $("r1k").textContent = "모인 돈"; $("r1v").textContent = `${won(total)} / ${won(goal)}`;
+    $("r2k").textContent = "일한 시간"; $("r2v").textContent = hm(doneMs);
+    const left = Math.max(0, goal - total);
+    $("r3k").textContent = "남은 금액"; $("r3v").textContent = left ? `${won(left)} · 약 ${hm(left/S.wage*3600000)}` : "없음";
+    const gt = reachTime(goal / S.wage);
+    if (r >= 1) eta = `🎉 ${name} 목표 달성! 설정에서 새 목표를 정해보세요.`;
+    else if (gt === Infinity) eta = "시간표를 등록하면 언제 목표를 이루는지 알려줘요.";
+    else eta = `지금 시간표대로면 ${new Date(gt).getFullYear()}. ${md(gt)}에 목표를 이뤄요.`;
+    if (prevGoal === false && r >= 1){ burst(40); sfx.badge(); toast(`🐷 저금통 가득! ${name} 목표 달성`); }
+    prevGoal = r >= 1;
+  }
+  $("pct").innerHTML = (Math.floor(r*1000)/10).toFixed(1) + "<span>%</span>";
+  $("capBar").style.width = (r*100).toFixed(3) + "%";
+  $("pigFill").style.transform = `translateY(${(162 - r*124).toFixed(2)}px)`;
+  $("eta").textContent = eta;
+}
+
+function renderPayday(now){
+  const t = new Date(now), today0 = dayAt(t.getFullYear(), t.getMonth(), t.getDate());
+  let p = dayAt(t.getFullYear(), t.getMonth(), S.payday);
+  if (+p < +today0) p = dayAt(t.getFullYear(), t.getMonth()+1, S.payday);
+  const isToday = +p === +today0;
+  const days = Math.round((+p - +today0) / 86400000);
+  $("pdDday").textContent = isToday ? "D-DAY" : `D-${days}`;
+  $("pdDate").textContent = `${p.getFullYear()}. ${md(+p)}`;
+  const pm = dayAt(p.getFullYear(), p.getMonth()-1, 1), pmEnd = dayAt(p.getFullYear(), p.getMonth(), 1);
+  const done = workedMs(+pm, Math.min(+pmEnd, now));
+  $("pdAmt").textContent = won(money(done));
+  $("pdSub").textContent = now < +pmEnd
+    ? `${pm.getMonth()+1}월 근무분 (지금까지) · 월말 예상 ${won(money(workedMs(+pm, +pmEnd)))}`
+    : `${pm.getMonth()+1}월 근무분 · ${hm(done)}`;
+  if (isToday) $("pdCount").textContent = "오늘 들어와요! 🎉";
+  else {
+    const left = +p - now, d = Math.floor(left/86400000), h = Math.floor(left%86400000/3600000), m = Math.floor(left%3600000/60000), s = Math.floor(left%60000/1000);
+    $("pdCount").textContent = `${d}일 ${h}시간 ${m}분 ${s}초 남음`;
+  }
+}
+
+function render(){
+  $("welcome").hidden = S.setup; $("main").hidden = !S.setup;
+  if (!S.setup) return;
+  const now = Date.now(), d = new Date(now);
+  const day0 = +dayAt(d.getFullYear(), d.getMonth(), d.getDate());
+  const wk0 = +dayAt(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay()+6)%7));
+  const mo0 = +dayAt(d.getFullYear(), d.getMonth(), 1);
+  const P = {today: money(workedMs(day0, now)), week: money(workedMs(wk0, now)), month: money(workedMs(mo0, now)), all: money(workedMs(startMs(), now))};
+  const working = currentShift(now);
+
+  const amt = P[period];
+  $("heroLabel").textContent = PLABEL[period] + " 번 돈";
+  $("money").innerHTML = `${Math.floor(amt).toLocaleString("ko-KR")}<small>.${pad(Math.floor((amt%1)*100))}</small><span class="won">원</span>`;
+  $("wageText").textContent = won(S.wage);
+  $("perSec").textContent = (S.wage/3600).toFixed(2) + "원";
+
+  const st = $("status");
+  if (!hasSchedule()){
+    st.className = "status"; $("statusText").textContent = "근무 시간을 설정에서 등록해 주세요"; $("shiftWrap").hidden = true;
+  } else if (working){
+    st.className = "status on"; $("statusText").textContent = "근무 중 · 돈 쌓이는 중";
+    $("shiftWrap").hidden = false;
+    $("shiftBar").style.width = ((now - working.s)/(working.e - working.s)*100).toFixed(2) + "%";
+    const left = Math.max(0, working.e - now), h = Math.floor(left/3600000), m = Math.floor(left%3600000/60000), s = Math.floor(left%60000/1000);
+    $("shiftLeft").textContent = `퇴근까지 ${h ? h+"시간 " : ""}${m}분 ${s}초`;
+    const ed = new Date(working.e);
+    $("shiftEnd").textContent = `${pad(ed.getHours())}:${pad(ed.getMinutes())} 퇴근 · 이번 근무 ${won(money(workedMs(working.s, now)))}`;
+  } else {
+    st.className = "status";
+    const n = nextShift(now);
+    if (n){
+      const nd = new Date(n.s), isToday = isoDate(nd) === isoDate(d);
+      $("statusText").textContent = `휴식 중 · 다음 출근 ${isToday ? "오늘" : md(n.s)} ${pad(nd.getHours())}:${pad(nd.getMinutes())}`;
+    } else $("statusText").textContent = "휴식 중";
+    $("shiftWrap").hidden = true;
+  }
+
+  if (working && prevToday !== null && P.today > prevToday){
+    const gained = P.today - prevToday;
+    if (gained < S.wage){
+      floatText("+" + gained.toFixed(2) + "원");
+      if (Math.floor(P.today/1000) > Math.floor(prevToday/1000)){ burst(16); dropCoin(); sfx.coin(); toast(`💰 오늘 ${won(Math.floor(P.today/1000)*1000)} 돌파!`); }
+      else if (Math.floor(P.today/100) > Math.floor(prevToday/100)){ burst(4); dropCoin(); sfx.coin(); }
+      else sfx.tick();
+    }
+  }
+  prevToday = P.today;
+
+  $("pToday").textContent = won(P.today); $("pWeek").textContent = won(P.week);
+  $("pMonth").textContent = won(P.month); $("pAll").textContent = won(P.all);
+  $("convLabel").textContent = PLABEL[period] + " 기준";
+  ITEMS.forEach((it,i)=>{ $("cv"+i).textContent = (amt/it.price).toFixed(1) + it.unit; });
+
+  const lv = levelOf(P.all);
+  $("lvBox").textContent = lv.L;
+  $("lvName").textContent = `LV.${lv.L} ${TITLES[Math.min(TITLES.length-1, Math.floor((lv.L-1)/3))]}`;
+  $("xpText").textContent = `${Math.floor(lv.cur).toLocaleString("ko-KR")} / ${lv.need.toLocaleString("ko-KR")}`;
+  $("xpBar").style.width = (lv.cur/lv.need*100).toFixed(2) + "%";
+  if (prevLevel !== null && lv.L > prevLevel){ burst(28); sfx.level(); toast(`⭐ 레벨 업! LV.${lv.L} 달성`); }
+  prevLevel = lv.L;
+
+  let got = 0;
+  BADGES.forEach((b,i)=>{
+    const has = P.all >= b.amt; if (has) got++;
+    $("bg"+i).classList.toggle("got", has);
+    if (has && prevBadges && !prevBadges[i]){ sfx.badge(); toast(`${b.emo} 업적 달성: ${b.nm}`); burst(20); }
+  });
+  prevBadges = BADGES.map(b => P.all >= b.amt);
+  $("badgeCount").textContent = `${got} / ${BADGES.length}`;
+
+  if (now - lastMonthRender > 5000){ renderMonths(now); lastMonthRender = now; }
+  renderPig(now, P.all);
+  renderPayday(now);
+  $("foot").textContent = `${S.start}부터 계산한 세전 금액이에요. 기록은 이 기기의 브라우저에만 저장돼요.`;
+}
+
+$("periods").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if (!b) return;
+  period = b.dataset.p;
+  [...$("periods").children].forEach(x=>x.setAttribute("aria-pressed", x===b ? "true" : "false"));
+  render();
+});
+
+// ---------- settings ----------
+let D = null;
+function exDesc(ex){
+  if (ex.type === "off") return "휴무";
+  if (ex.type === "rec") return hm(ex.min*60000) + " 근무";
+  return ex.blocks.map(b=>`${b.s}~${b.e}`).join(", ");
+}
+function renderWeekly(){
+  $("weekly").innerHTML = ORDER.map(i=>{
+    const rows = D.weekly[i].map((b,j)=>`<div class="brow" data-j="${j}">
+        <input class="inp" type="time" value="${b.s}" data-k="s" aria-label="${DAYNAMES[i]}요일 출근">
+        <span>~</span>
+        <input class="inp" type="time" value="${b.e}" data-k="e" aria-label="${DAYNAMES[i]}요일 퇴근">
+        <button type="button" class="mini del">삭제</button></div>`).join("");
+    return `<div class="wday" data-d="${i}"><div class="wd-head"><b>${DAYNAMES[i]}</b><button type="button" class="mini add">+ 시간 추가</button></div>${rows || '<span class="offtxt">근무 없음</span>'}</div>`;
+  }).join("");
+}
+$("weekly").addEventListener("click", e=>{
+  const w = e.target.closest(".wday"); if (!w) return;
+  const i = w.dataset.d;
+  if (e.target.classList.contains("add")){ D.weekly[i].push({s:"13:00", e:"18:00"}); renderWeekly(); }
+  if (e.target.classList.contains("del")){ D.weekly[i].splice(+e.target.closest(".brow").dataset.j, 1); renderWeekly(); }
+});
+$("weekly").addEventListener("change", e=>{
+  const r = e.target.closest(".brow"); if (!r || !e.target.value) return;
+  D.weekly[r.closest(".wday").dataset.d][+r.dataset.j][e.target.dataset.k] = e.target.value;
+});
+function renderEx(){
+  const keys = Object.keys(D.exceptions).sort().reverse();
+  $("exList").innerHTML = keys.length ? keys.map(k=>{
+    const [y,m,d] = k.split("-").map(Number), dn = DAYNAMES[new Date(y,m-1,d).getDay()];
+    return `<li><span class="d">${m}/${d}(${dn})</span><span class="t">${exDesc(D.exceptions[k])}</span><button type="button" class="mini del" data-k="${k}">삭제</button></li>`;
+  }).join("") : '<li><span class="t">아직 없어요</span></li>';
+}
+$("exList").addEventListener("click", e=>{ const k = e.target.dataset.k; if (!k) return; delete D.exceptions[k]; renderEx(); });
+function syncExType(){ const t = $("exType").value; $("exBlocksIn").hidden = t !== "blocks"; $("exRecIn").hidden = t !== "rec"; }
+$("exType").onchange = syncExType;
+$("exAdd").onclick = ()=>{
+  const date = $("exDate").value; if (!date){ $("exDate").focus(); return; }
+  const t = $("exType").value;
+  if (t === "off") D.exceptions[date] = {type:"off"};
+  if (t === "blocks") D.exceptions[date] = {type:"blocks", blocks:[{s:$("exS").value||"15:00", e:$("exE").value||"18:00"}]};
+  if (t === "rec"){ const min = (Number($("exH").value)||0)*60 + (Number($("exM").value)||0); D.exceptions[date] = {type:"rec", min}; }
+  renderEx();
+};
+function syncMode(){
+  const m = document.querySelector('input[name="mode"]:checked').value;
+  $("goalFields").hidden = m !== "goal"; $("hourFields").hidden = m !== "hours";
+}
+document.querySelectorAll('input[name="mode"]').forEach(r => r.onchange = syncMode);
+
+function openSettings(){
+  D = clone(S);
+  $("dlgTitle").textContent = S.setup ? "설정" : "처음 설정";
+  $("wageIn").value = D.wage; $("startIn").value = D.start; $("paydayIn").value = D.payday;
+  document.querySelector(`input[name="mode"][value="${D.mode}"]`).checked = true;
+  $("goalNameIn").value = D.goalName; $("goalAmtIn").value = D.goalAmt;
+  $("capIn").value = D.cap; $("semEndIn").value = D.semEnd;
+  $("exDate").value = isoDate(new Date());
+  $("resetBtn").parentElement.hidden = !S.setup;
+  syncMode(); syncExType(); renderWeekly(); renderEx();
+  $("dlg").showModal();
+}
+$("setBtn").onclick = openSettings;
+$("startBtn").onclick = openSettings;
+$("resetBtn").onclick = ()=>{
+  if (!confirm("모든 설정과 기록을 지울까요? 되돌릴 수 없어요.")) return;
+  try{ localStorage.removeItem(KEY); }catch(e){}
+  S = defaults(); for (const k in reachCache) delete reachCache[k];
+  $("dlg").close("cancel"); prevToday = prevLevel = prevBadges = prevGoal = null; render();
+};
+$("dlg").addEventListener("close", ()=>{
+  if ($("dlg").returnValue !== "save") return;
+  const w = Number($("wageIn").value); D.wage = w > 0 ? Math.round(w) : 10320;
+  if ($("startIn").value) D.start = $("startIn").value;
+  const pd = Number($("paydayIn").value); D.payday = pd >= 1 && pd <= 28 ? Math.round(pd) : 10;
+  D.mode = document.querySelector('input[name="mode"]:checked').value;
+  D.goalName = $("goalNameIn").value.trim();
+  const ga = Number($("goalAmtIn").value); D.goalAmt = ga > 0 ? Math.round(ga) : 500000;
+  const c = Number($("capIn").value); D.cap = c > 0 ? Math.round(c) : 400;
+  D.semEnd = $("semEndIn").value || "";
+  D.sound = S.sound; D.setup = true;
+  S = D; save(); for (const k in reachCache) delete reachCache[k];
+  prevToday = null; prevLevel = null; prevBadges = null; prevGoal = null; lastMonthRender = 0;
+  render(); toast("✅ 설정을 저장했어요");
+});
+
+// ---------- loop ----------
+setSoundUI();
+buildStatic();
+(function loop(){ render(); setTimeout(loop, 1000 - (Date.now() % 1000) + 5); })();
+</script>
+</body>
+</html>
