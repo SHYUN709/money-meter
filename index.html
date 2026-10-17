@@ -197,6 +197,23 @@ dialog{overflow:auto}
 .modepick span{color:var(--muted);font-size:.82rem}
 .danger{margin-top:24px;padding-top:16px;border-top:2px dashed var(--line)}
 .mini.warn{color:var(--pink);border-color:var(--pink)}
+/* friends */
+.frbox{display:grid;gap:10px;padding:18px;border-radius:18px;background:var(--surface);border:2px solid var(--line)}
+.frbox[hidden]{display:none}
+.frbox p{margin:0;color:var(--muted);font-size:.92rem}
+.frbox .r{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.frbox .r .inp{flex:1;min-width:140px}
+.frbox .help{color:var(--muted);font-size:.8rem}
+.ranks{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ranks li{display:grid;grid-template-columns:2.4rem minmax(0,1fr) auto;gap:0 10px;align-items:center;padding:12px 16px;border-radius:16px;background:var(--surface);border:2px solid var(--line)}
+.ranks li.me{border-color:var(--violet);background:color-mix(in srgb,var(--violet) 8%,var(--surface))}
+.ranks .rk{grid-row:1/3;font-size:1.4rem;text-align:center}
+.ranks .nk{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ranks .sub{grid-column:2;font-size:.8rem;color:var(--muted)}
+.ranks .sub .on{color:var(--mint);font-weight:700}
+.ranks .amt{grid-column:3;grid-row:1/3;font-size:1.15rem;text-align:right;font-variant-numeric:tabular-nums}
+.frfoot{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:.88rem;color:var(--muted)}
+.frfoot b{color:var(--ink);letter-spacing:.08em}
 </style>
 </head>
 <body>
@@ -284,6 +301,28 @@ dialog{overflow:auto}
     <button data-p="week" aria-pressed="false"><span>이번 주</span><b id="pWeek">0원</b></button>
     <button data-p="month" aria-pressed="true"><span>이번 달</span><b id="pMonth">0원</b></button>
     <button data-p="all" aria-pressed="false"><span>전체</span><b id="pAll">0원</b></button>
+  </div>
+
+  <div id="friendsWrap" hidden>
+    <h2>친구 랭킹 <small id="frLabel"></small></h2>
+    <div class="frbox" id="frJoin">
+      <p>그룹을 만들거나 친구한테 받은 코드로 들어가면, 서로 번 돈이 실시간으로 올라가는 걸 볼 수 있어요.</p>
+      <input class="inp" id="nickIn" maxlength="12" placeholder="닉네임 (친구들한테 보여요)" aria-label="닉네임">
+      <div class="r"><button type="button" class="btn" id="mkGroup">새 그룹 만들기</button></div>
+      <div class="r">
+        <input class="inp" id="codeIn" maxlength="6" placeholder="초대 코드 6자리" aria-label="초대 코드" autocapitalize="characters">
+        <button type="button" class="btn sub" id="joinGroup">참여하기</button>
+      </div>
+      <span class="help">참여하면 닉네임, 시급, 근무 시간표가 같은 그룹 친구들에게 공유돼요.</span>
+    </div>
+    <div id="frBoard" hidden>
+      <ol class="ranks" id="ranks"></ol>
+      <div class="frfoot">
+        <span>초대 코드 <b id="codeTxt"></b></span>
+        <button type="button" class="mini" id="copyLink">초대 링크 복사</button>
+        <button type="button" class="mini warn" id="leaveGroup">그룹 나가기</button>
+      </div>
+    </div>
   </div>
 
   <h2>월별 정산</h2>
@@ -433,7 +472,7 @@ function intervals(day){
   return list.map(b => { const s = toMs(day,b.s); let e = toMs(day,b.e); if (e <= s) e += 86400000; return {s,e}; });
 }
 // time at which `hours` of work since start will have been reached
-const reachCache = {};
+let reachCache = {};
 function reachTime(hours){
   const k = hours.toFixed(4);
   if (k in reachCache) return reachCache[k];
@@ -705,8 +744,101 @@ function render(){
   if (now - lastMonthRender > 5000){ renderMonths(now); lastMonthRender = now; }
   renderPig(now, P.all);
   renderPayday(now);
-  $("foot").textContent = `${S.start}부터 계산한 세전 금액이에요. 기록은 이 기기의 브라우저에만 저장돼요.`;
+  renderFriends(now, {today:day0, week:wk0, month:mo0, all:0});
+  $("foot").textContent = `${S.start}부터 계산한 세전 금액이에요. ` + (G
+    ? "그룹에 참여 중이라 닉네임·시급·시간표가 친구들과 공유돼요."
+    : "기록은 이 기기의 브라우저에만 저장돼요.");
 }
+
+// ---------- friends ----------
+// 각자 시급·시간표만 서버에 올리고, 번 돈은 각 화면에서 실시간으로 계산해요.
+const GKEY = "money-meter-group";
+const SHARE = ["wage","start","weekly","exceptions","mode","cap"];
+const CODECHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+let G = null;
+try { G = JSON.parse(localStorage.getItem(GKEY)); } catch(e){}
+let members = [];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
+const cleanCode = s => String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
+function saveG(){ try{ G ? localStorage.setItem(GKEY, JSON.stringify(G)) : localStorage.removeItem(GKEY); }catch(e){} }
+function asUser(st, cache, fn){
+  const s0 = S, c0 = reachCache; S = st; reachCache = cache;
+  try { return fn(); } finally { S = s0; reachCache = c0; }
+}
+function shareData(){ const o = {nick: G.nick}; SHARE.forEach(k => o[k] = S[k]); return o; }
+function publishMe(){
+  if (!G || !window.FB || !S.setup) return;
+  FB.publish(G.code, shareData()).catch(() => toast("⚠️ 친구들한테 기록을 못 보냈어요"));
+}
+function onMembers(list){
+  members = list.filter(m => m.wage > 0 && /^\d{4}-\d{2}-\d{2}$/.test(m.start) && m.weekly)
+    .map(m => ({id: m.id, nick: String(m.nick || "익명").slice(0,12), st: Object.assign(defaults(), m, {setup:true, semEnd:""}), cache: {}}));
+}
+function connectGroup(){
+  if (!G || !window.FB) return;
+  FB.watch(G.code, onMembers, () => toast("⚠️ 친구 기록을 불러오지 못했어요"));
+  publishMe();
+}
+function joinGroup(code){
+  const nick = $("nickIn").value.trim().slice(0,12);
+  if (!nick){ $("nickIn").focus(); toast("닉네임을 먼저 적어주세요"); return; }
+  if (code.length !== 6){ $("codeIn").focus(); toast("초대 코드는 6자리예요"); return; }
+  G = {code, nick}; saveG(); connectGroup(); render();
+  toast(`👋 ${code} 그룹에 들어왔어요`);
+}
+$("mkGroup").onclick = () => {
+  const r = crypto.getRandomValues(new Uint32Array(6));
+  joinGroup([...r].map(n => CODECHARS[n % CODECHARS.length]).join(""));
+};
+$("joinGroup").onclick = () => joinGroup(cleanCode($("codeIn").value));
+$("codeIn").oninput = e => { e.target.value = cleanCode(e.target.value); };
+$("copyLink").onclick = async () => {
+  const url = location.origin + location.pathname + "?group=" + G.code;
+  try { await navigator.clipboard.writeText(url); toast("🔗 초대 링크를 복사했어요"); }
+  catch(e){ prompt("이 링크를 친구한테 보내주세요", url); }
+};
+function leaveGroup(){
+  if (!G) return;
+  if (window.FB){ FB.remove(G.code).catch(()=>{}); FB.unwatch(); }
+  G = null; members = []; saveG();
+}
+$("leaveGroup").onclick = () => {
+  if (!confirm("그룹에서 나갈까요? 친구들 화면에서 내 기록이 사라져요.")) return;
+  leaveGroup(); render();
+};
+function renderFriends(now, from){
+  $("friendsWrap").hidden = !window.FB;
+  if (!window.FB) return;
+  $("frJoin").hidden = !!G; $("frBoard").hidden = !G;
+  $("frLabel").textContent = PLABEL[period] + " 기준";
+  if (!G) return;
+  $("codeTxt").textContent = G.code;
+  const calc = () => ({
+    amt: money(workedMs(period === "all" ? startMs() : from[period], now)),
+    working: !!currentShift(now),
+    lv: levelOf(money(workedMs(startMs(), now))).L
+  });
+  // 내 줄은 서버 사본 대신 지금 화면의 설정으로 계산해요
+  const rows = [{me: true, nick: G.nick, ...calc()}];
+  for (const m of members){
+    if (m.id === FB.uid) continue;
+    try { rows.push({nick: m.nick, ...asUser(m.st, m.cache, calc)}); } catch(e){}
+  }
+  rows.sort((a,b) => b.amt - a.amt);
+  const medal = ["🥇","🥈","🥉"];
+  $("ranks").innerHTML = rows.map((r,i) => `<li class="${r.me ? "me" : ""}">
+      <span class="rk disp">${medal[i] || i+1}</span>
+      <span class="nk">${esc(r.nick)}${r.me ? " (나)" : ""}</span>
+      <span class="sub">${r.working ? '<span class="on">● 근무 중</span>' : "휴식 중"} · LV.${r.lv}</span>
+      <span class="amt disp">${won(r.amt)}</span></li>`).join("")
+    + (rows.length === 1 ? '<li><span class="rk">💌</span><span class="nk">아직 나 혼자예요</span><span class="sub">초대 링크를 친구들한테 보내보세요</span></li>' : "");
+}
+{
+  const q = cleanCode(new URLSearchParams(location.search).get("group"));
+  if (q && !G) $("codeIn").value = q;
+}
+window.addEventListener("fb-ready", () => { connectGroup(); render(); });
+window.addEventListener("fb-error", () => toast("⚠️ 친구 서버에 연결하지 못했어요"));
 
 $("periods").addEventListener("click", e=>{
   const b = e.target.closest("button"); if (!b) return;
@@ -783,6 +915,7 @@ $("startBtn").onclick = openSettings;
 $("resetBtn").onclick = ()=>{
   if (!confirm("모든 설정과 기록을 지울까요? 되돌릴 수 없어요.")) return;
   try{ localStorage.removeItem(KEY); }catch(e){}
+  leaveGroup();
   S = defaults(); for (const k in reachCache) delete reachCache[k];
   $("dlg").close("cancel"); prevToday = prevLevel = prevBadges = prevGoal = null; render();
 };
@@ -799,13 +932,56 @@ $("dlg").addEventListener("close", ()=>{
   D.sound = S.sound; D.setup = true;
   S = D; save(); for (const k in reachCache) delete reachCache[k];
   prevToday = null; prevLevel = null; prevBadges = null; prevGoal = null; lastMonthRender = 0;
-  render(); toast("✅ 설정을 저장했어요");
+  render(); publishMe(); toast("✅ 설정을 저장했어요");
 });
 
 // ---------- loop ----------
 setSoundUI();
 buildStatic();
 (function loop(){ render(); setTimeout(loop, 1000 - (Date.now() % 1000) + 5); })();
+</script>
+<script type="module">
+// Firebase 콘솔 → 프로젝트 설정 → 내 앱(웹)에 나오는 firebaseConfig를 여기에 붙여넣으세요.
+// 비워 두면(null) 친구 랭킹 없이 혼자 쓰는 모드로 동작해요.
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBnl4ZD3Mp34WDCt29N49eEQ6viPQZctN4",
+  authDomain: "money-meter-6b53a.firebaseapp.com",
+  projectId: "money-meter-6b53a",
+  storageBucket: "money-meter-6b53a.firebasestorage.app",
+  messagingSenderId: "747989973458",
+  appId: "1:747989973458:web:6ca7bfa9273d699b98700b"
+};
+
+if (FIREBASE_CONFIG) {
+  try {
+    const V = "https://www.gstatic.com/firebasejs/10.12.2/";
+    const [{initializeApp}, au, fs] = await Promise.all([
+      import(V + "firebase-app.js"), import(V + "firebase-auth.js"), import(V + "firebase-firestore.js")
+    ]);
+    const app = initializeApp(FIREBASE_CONFIG);
+    const auth = au.getAuth(app), db = fs.getFirestore(app);
+    // 가입 없이 기기마다 익명 아이디를 하나 받아요 (저장된 아이디가 있으면 그걸 다시 써요)
+    await auth.authStateReady();
+    const user = auth.currentUser || (await au.signInAnonymously(auth)).user;
+    const member = code => fs.doc(db, "groups", code, "members", user.uid);
+    let stop = null;
+    window.FB = {
+      uid: user.uid,
+      publish: (code, data) => fs.setDoc(member(code), {...data, updatedAt: fs.serverTimestamp()}),
+      remove: code => fs.deleteDoc(member(code)),
+      watch(code, onList, onErr){
+        if (stop) stop();
+        stop = fs.onSnapshot(fs.collection(db, "groups", code, "members"),
+          snap => onList(snap.docs.map(d => ({id: d.id, ...d.data()}))), onErr);
+      },
+      unwatch(){ if (stop) stop(); stop = null; }
+    };
+    window.dispatchEvent(new Event("fb-ready"));
+  } catch (e) {
+    console.error(e);
+    window.dispatchEvent(new Event("fb-error"));
+  }
+}
 </script>
 </body>
 </html>

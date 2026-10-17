@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // groups/{초대코드}/members/{익명 아이디}
+    match /groups/{code}/members/{uid} {
+      // 코드를 아는 사람만 그 그룹을 볼 수 있어요 (그룹 목록 전체는 못 봐요)
+      allow read: if request.auth != null;
+      // 내 기록은 나만 만들고 고치고 지울 수 있어요
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && code.size() == 6
+        && request.resource.data.nick is string
+        && request.resource.data.nick.size() > 0
+        && request.resource.data.nick.size() <= 12
+        && request.resource.data.wage is number;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

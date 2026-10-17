@@ -10,10 +10,21 @@
 - 돼지 저금통: 목표 금액 또는 한도 시간 기준으로 차오름
 - 레벨업, 업적 배지, 동전 이펙트, 효과음
 - 치킨 · 커피 · 국밥 · 삼각김밥 개수로 환산
+- 친구 랭킹: 초대 코드로 그룹을 만들어 서로 번 돈을 실시간으로 비교
 
 ## 사용법
 `index.html`을 브라우저로 열면 바로 돼요. 설치나 서버가 필요 없어요.
 기록은 각자 브라우저(localStorage)에만 저장돼요.
+
+## 친구 랭킹 (Firebase)
+서버에는 닉네임·시급·근무 시간표만 올라가고, 금액은 각자 화면에서 1초마다 계산해요.
+
+1. [Firebase 콘솔](https://console.firebase.google.com)에서 프로젝트를 만들어요.
+2. Authentication → 로그인 방법 → **익명** 사용 설정
+3. Firestore Database 만들기 → 규칙 탭에 `firestore.rules` 내용을 붙여넣고 게시
+4. 프로젝트 설정 → 내 앱 → 웹 앱 추가 → 나오는 `firebaseConfig`를 `index.html` 아래쪽 `FIREBASE_CONFIG`에 붙여넣기
+
+`FIREBASE_CONFIG`를 `null`로 두면 친구 기능 없이 혼자 쓰는 모드로 동작해요.
 
 ## 배포
 GitHub 저장소 Settings → Pages → Branch를 `main` / `/ (root)`로 저장하면
