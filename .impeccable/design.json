@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-02T12:00:00Z",
+  "title": "Design System: 알바 머니 미터",
+  "extensions": {
+    "colorMeta": {
+      "action-green": { "role": "primary", "displayName": "Ledger Green", "canonical": "#1F7A5A", "darkValue": "#5CC79A", "cssVar": "--act", "tonalRamp": ["#0B2A1F", "#123F2F", "#1A5A43", "#1F7A5A", "#3C9A77", "#6DBB9A", "#A8D9C2", "#E3F1EA"] },
+      "action-soft": { "role": "primary", "displayName": "Green Wash", "canonical": "#E3F1EA", "darkValue": "#1F3229", "cssVar": "--act-soft" },
+      "action-ink": { "role": "primary", "displayName": "Ledger Ink-on-Green", "canonical": "#FFFFFF", "darkValue": "#0E1F17", "cssVar": "--act-ink" },
+      "warm-ground": { "role": "neutral", "displayName": "Oat Ground", "canonical": "#F5F1EC", "darkValue": "#191714", "cssVar": "--ground", "tonalRamp": ["#191714", "#24211D", "#3A352F", "#625B53", "#B4ACA2", "#E3DCD2", "#EFEAE3", "#F5F1EC"] },
+      "card-white": { "role": "neutral", "displayName": "Card White", "canonical": "#FFFFFF", "darkValue": "#24211D", "cssVar": "--card" },
+      "sunk-oat": { "role": "neutral", "displayName": "Sunk Oat", "canonical": "#EFEAE3", "darkValue": "#2E2A25", "cssVar": "--sunk" },
+      "warm-ink": { "role": "neutral", "displayName": "Warm Ink", "canonical": "#222019", "darkValue": "#F2EEE8", "cssVar": "--ink" },
+      "warm-muted": { "role": "neutral", "displayName": "Warm Muted", "canonical": "#625B53", "darkValue": "#B4ACA2", "cssVar": "--muted" },
+      "hairline": { "role": "neutral", "displayName": "Hairline", "canonical": "#E3DCD2", "darkValue": "#3A352F", "cssVar": "--line" },
+      "danger-red": { "role": "error", "displayName": "Receipt Red", "canonical": "#B42318", "darkValue": "#F08A7E", "cssVar": "--danger", "tonalRamp": ["#3A1009", "#5E1A11", "#8A2016", "#B42318", "#D2503F", "#F08A7E", "#F7C3BB", "#FBE9E7"] },
+      "danger-soft": { "role": "error", "displayName": "Red Wash", "canonical": "#FBE9E7", "darkValue": "#3A2420", "cssVar": "--danger-soft" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The live amount only; decimals 0.42em/700/muted, unit 0.45em/700." },
+      "display-rest": { "displayName": "Display Rest", "purpose": "Off-shift next-shift time replacing the amount." },
+      "headline": { "displayName": "Headline", "purpose": "Payday D-day." },
+      "headline-setup": { "displayName": "Setup Headline", "purpose": "Setup sheet step headings." },
+      "title-figure": { "displayName": "Title Figure", "purpose": "Secondary money values such as the payday amount." },
+      "title": { "displayName": "Title", "purpose": "Card headings." },
+      "body": { "displayName": "Body", "purpose": "Default text; list titles at 700." },
+      "body-secondary": { "displayName": "Body Secondary", "purpose": "Leads, rate line, segments, links." },
+      "label": { "displayName": "Label", "purpose": "Tab labels, tally captions, help text." },
+      "tag": { "displayName": "Tag", "purpose": "Inline status pills in lists." }
+    },
+    "shadows": [
+      { "name": "resting", "cssVar": "--shadow", "value": "0 1px 2px rgba(60,45,30,.06),0 6px 20px rgba(60,45,30,.06)", "darkValue": "0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25)", "purpose": "Cards, status pill, icon buttons." },
+      { "name": "floating", "cssVar": "--shadow-float", "value": "0 2px 6px rgba(60,45,30,.08),0 12px 32px rgba(60,45,30,.12)", "darkValue": "0 2px 6px rgba(0,0,0,.35),0 12px 32px rgba(0,0,0,.4)", "purpose": "Fixed and sticky layers: tab bar, save bar." },
+      { "name": "segment", "cssVar": "--shadow-seg", "value": "0 1px 3px rgba(60,45,30,.12)", "darkValue": "0 1px 3px rgba(0,0,0,.4)", "purpose": "Selected segment on its sunk track." }
+    ],
+    "motion": [
+      { "name": "ease-soft", "value": "cubic-bezier(.16,1,.3,1)", "purpose": "All eased transitions." },
+      { "name": "press", "value": "transform .15s ease-soft; scale(.97) on :active", "purpose": "Button press feedback." },
+      { "name": "fill-bar", "value": "width .8s ease-soft", "purpose": "Shift bar and XP meter fills." },
+      { "name": "fill-ring", "value": "stroke-dashoffset 1s ease-soft", "purpose": "Goal ring arc." },
+      { "name": "toast", "value": "transform .3s ease-soft, opacity .3s", "purpose": "Toast slide-up 16px and fade." },
+      { "name": "reduced-motion", "value": "transition:none on all elements", "purpose": "prefers-reduced-motion: reduce." }
+    ],
+    "breakpoints": [
+      { "name": "goal-compact", "value": "max-width: 440px" },
+      { "name": "duo-pair", "value": "560px to 899px" },
+      { "name": "buygrid-4", "value": "min-width: 640px" },
+      { "name": "two-column", "value": "min-width: 900px" },
+      { "name": "container", "value": "max-width: 1040px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Green filled action; the main pressable on a card or step.",
+      "html": "<button class=\"ds-btn\">새 그룹 만들기</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:14px;border:0;background:var(--act,#1F7A5A);color:var(--act-ink,#fff);font:700 16px/1.55 'Gothic A1',system-ui,sans-serif;cursor:pointer;transition:transform .15s cubic-bezier(.16,1,.3,1),filter .15s}.ds-btn:hover{filter:brightness(1.06)}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:2px solid var(--act,#1F7A5A);outline-offset:3px}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action on a sunk fill: back, join, set goal.",
+      "html": "<button class=\"ds-btn-ghost\">이전</button>",
+      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;border-radius:14px;border:0;background:var(--sunk,#EFEAE3);color:var(--ink,#222019);font:700 16px/1.55 'Gothic A1',system-ui,sans-serif;cursor:pointer;transition:transform .15s cubic-bezier(.16,1,.3,1),filter .15s}.ds-btn-ghost:hover{filter:brightness(1.03)}.ds-btn-ghost:active{transform:scale(.97)}.ds-btn-ghost:focus-visible{outline:2px solid var(--act,#1F7A5A);outline-offset:3px}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive action on red wash.",
+      "html": "<button class=\"ds-btn-danger\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 7h14M9.5 7V4.5h5V7M7 7l1 13h8l1-13\"/></svg>모든 기록 지우기</button>",
+      "css": ".ds-btn-danger{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 20px;border-radius:14px;border:0;background:var(--danger-soft,#FBE9E7);color:var(--danger,#B42318);font:700 16px/1.55 'Gothic A1',system-ui,sans-serif;cursor:pointer;transition:transform .15s cubic-bezier(.16,1,.3,1)}.ds-btn-danger:active{transform:scale(.97)}.ds-btn-danger:focus-visible{outline:2px solid var(--act,#1F7A5A);outline-offset:3px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labelled 48px field with help line.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-lab\">시급 (원)</span><input class=\"ds-inp\" inputmode=\"numeric\" value=\"10320\"><span class=\"ds-help\">2026년 최저시급은 10,320원이에요.</span></label>",
+      "css": ".ds-field{display:grid;gap:6px;font-family:'Gothic A1',system-ui,sans-serif;color:var(--ink,#222019)}.ds-field-lab{font-weight:700;font-size:.9375rem}.ds-inp{min-height:48px;padding:0 14px;border-radius:12px;border:1.5px solid var(--line,#E3DCD2);background:var(--card,#fff);color:inherit;font:500 16px 'Gothic A1',system-ui,sans-serif;font-variant-numeric:tabular-nums}.ds-inp:focus{border-color:var(--act,#1F7A5A);outline:2px solid var(--act,#1F7A5A);outline-offset:1px}.ds-help{color:var(--muted,#625B53);font-size:.8125rem}"
+    },
+    {
+      "name": "Segmented Period Control",
+      "kind": "nav",
+      "refersTo": "segmented",
+      "description": "Four-way period switch on a sunk track.",
+      "html": "<div class=\"ds-seg\"><button aria-pressed=\"true\">오늘</button><button aria-pressed=\"false\">이번 주</button><button aria-pressed=\"false\">이번 달</button><button aria-pressed=\"false\">전체</button></div>",
+      "css": ".ds-seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:14px;background:var(--sunk,#EFEAE3);font-family:'Gothic A1',system-ui,sans-serif}.ds-seg button{min-height:40px;border:0;border-radius:10px;background:none;color:var(--muted,#625B53);font:600 .9375rem 'Gothic A1',system-ui,sans-serif;cursor:pointer}.ds-seg button:hover{color:var(--ink,#222019)}.ds-seg button[aria-pressed=true]{background:var(--card,#fff);color:var(--ink,#222019);box-shadow:var(--shadow-seg,0 1px 3px rgba(60,45,30,.12))}.ds-seg button:focus-visible{outline:2px solid var(--act,#1F7A5A);outline-offset:3px}"
+    },
+    {
+      "name": "Bottom Tab Bar",
+      "kind": "nav",
+      "refersTo": "tabbar",
+      "description": "Floating four-tab bar with line icons; active tab on green wash.",
+      "html": "<nav class=\"ds-tabbar\"><button aria-current=\"page\"><svg viewBox=\"0 0 24 24\"><path d=\"M4 11l8-7 8 7v8.5a.5.5 0 0 1-.5.5H15v-6H9v6H4.5a.5.5 0 0 1-.5-.5z\"/></svg>홈</button><button><svg viewBox=\"0 0 24 24\"><path d=\"M7 3h10a1 1 0 0 1 1 1v17l-3-2-3 2-3-2-3 2V4a1 1 0 0 1 1-1zM9 8h6M9 12h6M9 16h3\"/></svg>기록</button><button><svg viewBox=\"0 0 24 24\"><path d=\"M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20c.6-3.3 3.3-5.5 6.5-5.5s5.9 2.2 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.9.7 3.2 2.5 3.5 5.2\"/></svg>친구</button><button><svg viewBox=\"0 0 24 24\"><path d=\"M4 7h9M17 7h3M15 5v4M4 17h3M11 17h9M9 15v4\"/></svg>설정</button></nav>",
+      "css": ".ds-tabbar{display:grid;grid-template-columns:repeat(4,1fr);width:min(560px,100%);padding:6px;border-radius:22px;background:var(--card,#fff);box-shadow:var(--shadow-float,0 2px 6px rgba(60,45,30,.08),0 12px 32px rgba(60,45,30,.12))}.ds-tabbar button{display:grid;justify-items:center;gap:2px;min-height:56px;padding:8px 4px;border:0;border-radius:16px;background:none;color:var(--muted,#625B53);font:600 .8125rem 'Gothic A1',system-ui,sans-serif;cursor:pointer}.ds-tabbar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.ds-tabbar button:hover{color:var(--ink,#222019)}.ds-tabbar button[aria-current=page]{color:var(--act,#1F7A5A);background:var(--act-soft,#E3F1EA)}.ds-tabbar button:focus-visible{outline:2px solid var(--act,#1F7A5A);outline-offset:3px}"
+    },
+    {
+      "name": "Day Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Toggle chips for weekdays; selected on green wash.",
+      "html": "<div class=\"ds-chips\"><button aria-pressed=\"true\">월</button><button aria-pressed=\"false\">화</button><button aria-pressed=\"true\">수</button></div>",
+      "css": ".ds-chips{display:flex;flex-wrap:wrap;gap:8px}.ds-chips button{min-width:48px;min-height:44px;padding:0 12px;border-radius:12px;border:1.5px solid var(--line,#E3DCD2);background:var(--card,#fff);color:var(--ink,#222019);font:700 16px 'Gothic A1',system-ui,sans-serif;cursor:pointer}.ds-chips button[aria-pressed=true]{border-color:var(--act,#1F7A5A);background:var(--act-soft,#E3F1EA);color:var(--act,#1F7A5A)}.ds-chips button:focus-visible{outline:2px solid var(--act,#1F7A5A);outline-offset:3px}"
+    },
+    {
+      "name": "Payday Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Borderless white card with resting shadow; headline D-day and tabular figure.",
+      "html": "<section class=\"ds-card\"><h2>다음 월급날</h2><p class=\"ds-dday\">D-13<small>11월 15일 (일)</small></p><p class=\"ds-amt\">1,135,200원</p><p class=\"ds-sub\">10월 근무분 · 110시간</p></section>",
+      "css": ".ds-card{background:var(--card,#fff);border-radius:20px;box-shadow:var(--shadow,0 1px 2px rgba(60,45,30,.06),0 6px 20px rgba(60,45,30,.06));padding:22px;color:var(--ink,#222019);font:500 16px/1.55 'Gothic A1',system-ui,sans-serif;font-variant-numeric:tabular-nums}.ds-card h2{margin:0;font-size:1.0625rem;font-weight:700;letter-spacing:-.01em}.ds-dday{margin:10px 0 0;font-size:2.25rem;font-weight:800;letter-spacing:-.03em;line-height:1.1}.ds-dday small{font-size:1rem;font-weight:600;color:var(--muted,#625B53);margin-left:8px;letter-spacing:0}.ds-amt{margin:10px 0 0;font-size:1.375rem;font-weight:700}.ds-sub{margin:2px 0 0;font-size:.875rem;color:var(--muted,#625B53)}"
+    },
+    {
+      "name": "Goal Ring",
+      "kind": "custom",
+      "refersTo": "goal-ring",
+      "description": "Signature: single green arc filling over a sunk track, percentage centred.",
+      "html": "<div class=\"ds-ring\"><svg viewBox=\"0 0 124 124\"><circle class=\"trk\" cx=\"62\" cy=\"62\" r=\"52\"/><circle class=\"arc\" cx=\"62\" cy=\"62\" r=\"52\" stroke-dasharray=\"326.73\" stroke-dashoffset=\"114\"/></svg><div class=\"pct\">65%<small>모였어요</small></div></div>",
+      "css": ".ds-ring{position:relative;width:124px;height:124px;font-family:'Gothic A1',system-ui,sans-serif;color:var(--ink,#222019)}.ds-ring svg{width:100%;height:100%;transform:rotate(-90deg)}.ds-ring circle{fill:none;stroke-width:10}.ds-ring .trk{stroke:var(--sunk,#EFEAE3)}.ds-ring .arc{stroke:var(--act,#1F7A5A);stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.16,1,.3,1)}.ds-ring .pct{position:absolute;inset:0;display:grid;place-content:center;text-align:center;font-size:1.5rem;font-weight:800;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}.ds-ring .pct small{display:block;font-size:.75rem;font-weight:600;color:var(--muted,#625B53);letter-spacing:0}"
+    },
+    {
+      "name": "Live Amount",
+      "kind": "custom",
+      "refersTo": "display",
+      "description": "The one loud number: heavy tabular amount with muted decimals and a rate line.",
+      "html": "<div class=\"ds-live\"><p class=\"lbl\">오늘 번 돈</p><p class=\"amount\">14,685<span class=\"dec\">.94</span><span class=\"unit\">원</span></p><p class=\"rate\">시급 <b>10,320원</b> · 1초에 <b>2.87원</b></p></div>",
+      "css": ".ds-live{font-family:'Gothic A1',system-ui,sans-serif;color:var(--ink,#222019);font-variant-numeric:tabular-nums}.ds-live p{margin:0}.ds-live .lbl{color:var(--muted,#625B53);font-weight:600}.ds-live .amount{font-size:clamp(2.75rem,10vw,4.25rem);font-weight:800;line-height:1.08;letter-spacing:-.035em;margin-top:2px}.ds-live .dec{font-size:.42em;font-weight:700;color:var(--muted,#625B53);letter-spacing:0}.ds-live .unit{font-size:.45em;font-weight:700;margin-left:.08em;letter-spacing:0}.ds-live .rate{margin-top:8px;color:var(--muted,#625B53);font-size:.9375rem}.ds-live .rate b{color:var(--ink,#222019);font-weight:700}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Pay Slip",
+    "overview": "A warm, paper-tinted everyday-money app. One column of soft white cards sits on an oat-coloured ground; the only loud thing on any screen is the money figure in heavy Gothic A1, and the only colour is a deep green that marks what you can press and what is live or filling up. Everything else is warm ink and warm grey.\n\nDensity is relaxed but not sparse: 16px gaps between cards, 22px inside them, hairline dividers instead of boxes within a card. Depth is a soft ambient lift, never an outline or an offset block. Motion is short and soft: a slight press-in on buttons, eased fills on bars and the goal ring, no entrance bounce.\n\nThe system ships in light and dark from the same token names; dark keeps the warmth (brown-black ground, not neutral grey) and lifts the green to a mint that keeps AA on dark cards.",
+    "keyCharacteristics": [
+      "Warm tinted ground, borderless white cards at 20px radius with ambient shadow.",
+      "One action colour (green) reserved for pressables, live status, and progress/selected marks.",
+      "One typeface, Gothic A1, carried from 0.75rem tags to a 4.25rem live amount; tabular figures on every money value.",
+      "Line icons drawn as inline SVG symbols, 1.8 stroke, round caps.",
+      "Floating bottom tab bar on every breakpoint."
+    ],
+    "rules": [
+      { "name": "The Green Means Go Rule", "body": "Green appears only on something you can press, something live, or something filling/selected (bars, ring, checked state). It is never used to decorate a heading, a number or an icon at rest.", "section": "colors" },
+      { "name": "The Same Names, Two Lights Rule", "body": "Every colour exists as one token name with a light and a dark value (`:root`, `prefers-color-scheme: dark`, and `[data-theme]` override). New surfaces use the variables, never literal hex.", "section": "colors" },
+      { "name": "The Tabular Money Rule", "body": "Every money or count figure carries tabular numerals (`.num`), so ticking values never jitter.", "section": "typography" },
+      { "name": "The One Loud Number Rule", "body": "Only one Display-size figure per screen: the live amount, or the next-shift time when resting. Other figures step down to Headline or below.", "section": "typography" },
+      { "name": "The Lift, Not Line Rule", "body": "Cards have no border; separation comes from the tinted ground and the resting shadow. Inside a card, depth goes down (sunk-oat recesses), never up.", "section": "elevation" }
+    ],
+    "dos": [
+      "**Do** put every new surface in a white 20px card on the oat ground with the Resting shadow.",
+      "**Do** keep green for pressables, live status, and progress/selected state only.",
+      "**Do** mark every money value with tabular numerals and keep a single Display-size figure per screen.",
+      "**Do** draw icons as inline SVG line symbols (24 viewBox, 1.8 stroke, round caps, currentColor).",
+      "**Do** keep controls at 44px minimum (48px for primary buttons and inputs) and respect `prefers-reduced-motion`, which disables all transitions.",
+      "**Do** define any new colour in both light and dark token sets."
+    ],
+    "donts": [
+      "**Don't** add borders or hard offset shadows to cards; use the three shadow tokens.",
+      "**Don't** use gradients, emoji icons, or green on decorative text and numbers at rest.",
+      "**Don't** introduce a second typeface or a display face for numbers; hierarchy comes from Gothic A1 weight and size.",
+      "**Don't** add entrance bounces; motion is press feedback and eased fills only."
+    ]
+  }
+}
